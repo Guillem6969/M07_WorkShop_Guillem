@@ -1,0 +1,19 @@
+{
+    "name": "guims/m07_work-shop_guillem",
+    "autoload": {
+        "psr-4": {
+            "Guims\\M07WorkShopGuillem\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Guillem6969",
+            "email": "guim.san.oli@gmail.com"
+        }
+    ],
+    "require": {
+        "monolog/monolog": "^3.8",
+        "intervention/image": "^3.9",
+        "ramsey/uuid": "^4.7"
+    }
+}
