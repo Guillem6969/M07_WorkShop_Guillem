@@ -5,11 +5,11 @@ use Controller\ControllerReparation;
 
 
 
-// Iniciar sesión para guardar el rol del usuario
+// Log in to save user role
 session_start();
 
 if (isset($_GET['role'])) {
-    $_SESSION['role'] = $_GET['role']; // Guardamos el rol en la sesión
+    $_SESSION['role'] = $_GET['role']; // Save the rol in the session
 }
 
 ?>
@@ -19,6 +19,7 @@ if (isset($_GET['role'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reparation Details</title>
+    <link rel="stylesheet" href="ViewReparation.css">
 </head>
 <body>
 
@@ -33,34 +34,29 @@ if (isset($_GET['role'])) {
     </form>
 
     <?php
-    // Comprobar si se ha enviado un ID de reparación
     if (isset($_POST['id_reparation'])) {
-    $idReparation = $_POST['id_reparation'];
+        $idReparation = $_POST['id_reparation'];
+        $controller = new ControllerReparation();
+        $response = $controller->getReparation($idReparation);
 
-    // Usar el controlador para obtener los datos de reparación
-    $controller = new ControllerReparation();
-        try {
-            $data = $controller->getReparation($idReparation); // Obtener datos
-        }catch (Exception $e) {
-        $error = $e->getMessage();
+        if (isset($response['error'])) {
+            $error = $response['error'];
+        } else {
+            $data = $response;
         }
     }
+?>
 
-    ?>
+<?php if (isset($error)): ?>
+    <p style="color: red;"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
+<?php elseif (isset($data)): ?>
+    <h3>Reparation Details</h3>
+    <p><strong>ID Reparation:</strong> <?= ($data['id_reparation']) ?></p>
+    <p><strong>Work Shop:</strong> <?= ($data['nameWorkshop']) ?></p>
+    <p><strong>Date:</strong> <?= ($data['registerDate']) ?></p>
+    <p><strong>License Plate:</strong> <?= ($data['licensePlate']) ?></p>
+<?php endif; ?>
 
-    <?php if (isset($error)): ?>
-        <!-- Mostrar error si no se encuentra el ID o hubo problemas -->
-        <p style="color: red;"><?= ($error) ?></p>
-    <?php elseif (isset($data)): ?>
-        <!-- Mostrar datos de la reparación -->
-        <h3>Reparation Details</h3>
-        <p><strong>ID Reparación:</strong> <?= ($data['id_reparation']) ?></p>
-        <p><strong>Taller:</strong> <?= ($data['nameWorkshop']) ?></p>
-        <p><strong>Fecha:</strong> <?= ($data['registerDate']) ?></p>
-        <p><strong>Placa:</strong> <?= ($data['licensePlate']) ?></p>
-        <p><strong>Foto:</strong></p>
-        <!-- Mostrar foto -->
-    <?php endif; ?>
 </body>
 </html>
 
