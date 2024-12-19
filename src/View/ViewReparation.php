@@ -1,6 +1,9 @@
 <?php
+
+namespace App\View;
 require_once '../../vendor/autoload.php';
-require '../Controller/ControllerReparation.php';
+require_once '../Controller/ControllerReparation.php';
+
 use Controller\ControllerReparation;
 
 
@@ -27,13 +30,13 @@ if (isset($_GET['role'])) {
     <h2>Welcome, <?=($_SESSION['role'])?></h2>
 
     
-    <form method="post">
+    <form method="post" action="../Controller/ControllerReparation.php">
         <label for="id_reparation">Enter Reparation ID:</label>
         <input type="text" id="id_reparation" name="id_reparation" required>
         <button type="submit">Search</button>
     </form>
 
-
+    
     <?php
     if($_SESSION['role'] === 'employee') { ?>
 
@@ -55,34 +58,23 @@ if (isset($_GET['role'])) {
     </form>
     <?php
     }
-    
-    
-    
 
-    
-    if (isset($_POST['id_reparation'])) {
-        $idReparation = $_POST['id_reparation'];
-        $controller = new ControllerReparation();
-        $response = $controller->getReparation($idReparation);
-
-        if (isset($response['error'])) {
-            $error = $response['error'];
-        } else {
-            $data = $response;
+    ?>
+    <?php
+    class ViewReparation{
+        function render($reparation){
+            if (isset($error)): ?>
+                <p style="color: red;"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
+            <?php elseif (isset($data)): ?>
+                <h3>Reparation Details</h3>
+                <p><strong>ID Reparation:</strong> <?= ($reparation->getIdReparation()) ?></p>
+                <p><strong>Work Shop:</strong> <?= ($reparation->getnameWorkshop()) ?></p>
+                <p><strong>Date:</strong> <?= ($reparation->getRegisterDate()) ?></p>
+                <p><strong>License Plate:</strong> <?= ($reparation->getLicensePlate()) ?></p>
+            <?php endif; 
         }
     }
     ?>
-
-<?php if (isset($error)): ?>
-    <p style="color: red;"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
-<?php elseif (isset($data)): ?>
-    <h3>Reparation Details</h3>
-    <p><strong>ID Reparation:</strong> <?= ($data['id_reparation']) ?></p>
-    <p><strong>Work Shop:</strong> <?= ($data['nameWorkshop']) ?></p>
-    <p><strong>Date:</strong> <?= ($data['registerDate']) ?></p>
-    <p><strong>License Plate:</strong> <?= ($data['licensePlate']) ?></p>
-<?php endif; ?>
-
 </body>
 </html>
 

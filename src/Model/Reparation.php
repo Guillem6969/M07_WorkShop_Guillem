@@ -5,9 +5,9 @@ class Reparation
     private $nameWorkshop;
     private $registerDate;
     private $licensePlate;
-    function __construct($idReparation,$idWorkshop,$registerDate,$licensePlate) {
+    function __construct($idReparation,$nameWorkshop,$registerDate,$licensePlate) {
         $this->idReparation = $idReparation;
-        $this->nameWorkshop = $idWorkshop;
+        $this->nameWorkshop = $nameWorkshop;
         $this->registerDate = $registerDate;
         $this->licensePlate = $licensePlate;
     }
@@ -20,11 +20,11 @@ class Reparation
         $idReparation
     ): void {$this->idReparation = $idReparation;}
 
-    public function getIdWorkshop()
+    public function getnameWorkshop()
     {
         return $this->nameWorkshop;
     }
-    public function setIdWorkshop(
+    public function setnameWorkshop(
         $idWorkshop
     ): void {
         $this->nameWorkshop = $idWorkshop;

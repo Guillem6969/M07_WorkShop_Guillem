@@ -3,8 +3,9 @@
 namespace Service;
 
 use mysqli;
+require '../Model/Reparation.php';
 
-use Model\Reparation;
+use App\Model\Reparation;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
@@ -33,7 +34,7 @@ class ServiceReparation {
         }
     }
 
-    public function getReparation($idReparation) {
+    public function getReparation($role, $idReparation) {
         $stmt = $this->conn->prepare("SELECT id_reparation, nameWorkshop, registerDate, licensePlate FROM reparation WHERE id_reparation = ?");
     
         // Verificar si la preparación de la consulta fue exitosa
@@ -54,8 +55,9 @@ class ServiceReparation {
         }
     
         $data = $result->fetch_assoc();
+        $reparation = new Reparation($data['id_reparation'],$data['nameWorkshop'],$data['registerDate'],$data['licensePlate']);
         $stmt->close();
-        return $data;
+        return $reparation;
     }
     
 
