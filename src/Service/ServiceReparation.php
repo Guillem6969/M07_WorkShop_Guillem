@@ -1,18 +1,36 @@
 <?php
 
-namespace Service;
+namespace App\Service;
 
 use mysqli;
+
 require '../Model/Reparation.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Model\Reparation;
+use Exception;
 use Monolog\Logger;
+use Monolog\Level;
 use Monolog\Handler\StreamHandler;
+use Ramsey\Uuid\Nonstandard\Uuid;
 
 class ServiceReparation {
     private $conn;
 
+    private Logger $log;
+
+    function generateUUID()
+    {
+        return Uuid::uuid4();
+    }
     public function __construct() {
+
+        $this->log = new Logger('log');
+        try{
+            $this->log->pushHandler(new StreamHandler(__DIR__ . '/../../logs/app_reparation.log', Level::Info));
+        } catch (Exception $e){
+            echo "ERROR: ". $e->getMessage();
+        }
 
         $configPath = '../../cfg/db_config.ini';
         
@@ -30,12 +48,21 @@ class ServiceReparation {
 
         // Manage connection errors
         if ($this->conn->connect_error) {
+            $this->log->error("Connection failed");
             throw new \Exception('Connection failed: ' . $this->conn->connect_error);
         }
+        $this->log->info("Connection succesfully");
+
+        
     }
 
     public function getReparation($role, $idReparation) {
-        $stmt = $this->conn->prepare("SELECT id_reparation, nameWorkshop, registerDate, licensePlate FROM reparation WHERE id_reparation = ?");
+
+        $sql = "SELECT id_reparation, idWorkshop, nameWorkshop, registerDate, licensePlate, photo
+                FROM reparation 
+                WHERE id_reparation = ?";
+
+        $stmt = $this->conn->prepare($sql);
     
         // Verificar si la preparación de la consulta fue exitosa
         if (!$stmt) {
@@ -46,8 +73,11 @@ class ServiceReparation {
         $stmt->bind_param("i", $idReparation);
     
         if (!$stmt->execute()) {
+            $this->log->error("GET failed");
             throw new \Exception('Error executing query: ' . $stmt->error);
         }
+        $this->log->info("Get succesfully".$idReparation);
+
     
         $result = $stmt->get_result();
         if ($result->num_rows === 0) {
@@ -55,19 +85,44 @@ class ServiceReparation {
         }
     
         $data = $result->fetch_assoc();
-        $reparation = new Reparation($data['id_reparation'],$data['nameWorkshop'],$data['registerDate'],$data['licensePlate']);
+        $reparation = new Reparation($data['id_reparation'],$data['idWorkshop'],$data['nameWorkshop'],$data['registerDate'],$data['licensePlate'], $data['photo'],);
         $stmt->close();
         return $reparation;
     }
-    
 
+    public function insertReparation ($idWorkshop, $workshopName, $date, $licensePlate, $photo){
+        $sql = "INSERT INTO `workshop`.`reparation` (
+            `id_reparation`, 
+            `idWorkshop`,
+            `nameWorkshop`, 
+            `registerDate`, 
+            `licensePlate`,
+            `photo`
+        ) VALUES (?, ?, ?, ?, ?, ?)";
+
+
+    $stmt = $this->conn->prepare($sql);
+    
+    // Verificar si la preparación de la consulta fue exitosa
+    if (!$stmt) {
+        throw new \Exception('Error preparing query: ' . $this->conn->error);
+    }
+
+    $idReparation = $this->generateUUID();
+    // Enlazar parámetros (tipos: i = entero, s = string)
+    $stmt->bind_param("sissss", $idReparation,$idWorkshop,  $workshopName, $date, $licensePlate, $photo);
+
+    if (!$stmt->execute()) {
+        $this->log->error("Insert failed".$idReparation);
+        throw new \Exception('Error executing query: ' . $stmt->error);
+    }
+    $this->log->info("Insert succesfully".$idReparation);
+
+    $stmt->close();
+    }
+    
     public function __destruct() {
         $this->conn->close(); // Cerrar la conexión al destruir la instancia
     }
 
-    // private function log($action, $message, $level) {
-    //     $logger = new Logger('app_workshop');
-    //     $logger->pushHandler(new StreamHandler(__DIR__ . '/../../logs/app_workshop.log', Logger::DEBUG));
-    //     $logger->$level("$action: $message");
-    // }
 }

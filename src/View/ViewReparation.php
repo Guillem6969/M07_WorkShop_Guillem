@@ -1,11 +1,11 @@
 <?php
 
 namespace App\View;
-require_once '../../vendor/autoload.php';
-require_once '../Controller/ControllerReparation.php';
 
-use Controller\ControllerReparation;
+// require_once '../../vendor/autoload.php';
+// require_once '../Controller/ControllerReparation.php';
 
+use App\Model\Reparation;
 
 
 // Log in to save user role
@@ -33,48 +33,52 @@ if (isset($_GET['role'])) {
     <form method="post" action="../Controller/ControllerReparation.php">
         <label for="id_reparation">Enter Reparation ID:</label>
         <input type="text" id="id_reparation" name="id_reparation" required>
-        <button type="submit">Search</button>
+        <input type="submit" name="getReparation"></input>
     </form>
 
-    
     <?php
     if($_SESSION['role'] === 'employee') { ?>
 
-    <form method="post">
+    <form method="post" action="../Controller/ControllerReparation.php">
 
-        <label for="id_reparation">Reparation ID:</label>
-        <input type="text" id="id_reparation" name="id_reparation" required>
+        <label for="idWorkshop">Workshop ID:</label>
+        <input type="text" id="idWorkshop" name="idWorkshop" required>
 
+        <br><label for="licensePlate">Licenseplate :</label>
+        <input type="text" id="licensePlate" name="licensePlate" placeholder="1234XXX" required>
+        
         <label for="nameWorkshop">Workshop's name:</label>
         <input type="text" id="nameWorkshop" name="nameWorkshop" required>
 
         <label for="registerDate">Date :</label>
-        <input type="date" id="registerDate" name="registerDate" required>
+        <input type="text" id="registerDate" name="registerDate" placeholder="2024-12-12" required>
         
-        <br><label for="licensePlate">Licenseplate :</label>
-        <input type="text" id="licensePlate" name="licensePlate" placeholder="1234XXX" required>
+        <br><label for="photo">Photo :</label>
+        <input type="file" id="photo" name="photo" placeholder="BROWSE" required>
 
-        <button type="submit">Send</button>
+
+        <input type="submit" name="insertReparation"></inpùt>
     </form>
     <?php
-    }
-
-    ?>
-    <?php
-    class ViewReparation{
-        function render($reparation){
-            if (isset($error)): ?>
-                <p style="color: red;"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
-            <?php elseif (isset($data)): ?>
-                <h3>Reparation Details</h3>
-                <p><strong>ID Reparation:</strong> <?= ($reparation->getIdReparation()) ?></p>
-                <p><strong>Work Shop:</strong> <?= ($reparation->getnameWorkshop()) ?></p>
-                <p><strong>Date:</strong> <?= ($reparation->getRegisterDate()) ?></p>
-                <p><strong>License Plate:</strong> <?= ($reparation->getLicensePlate()) ?></p>
-            <?php endif; 
-        }
     }
     ?>
 </body>
 </html>
 
+<?php
+    class ViewReparation{
+        function render($reparation){
+            if ($reparation != null): ?>
+                
+                <h3>Reparation Details</h3>
+                <p><strong>ID Reparation:</strong> <?= ($reparation->getIdReparation()) ?></p>
+                <p><strong>ID Workshop:</strong> <?= ($reparation->getIdWorkshop()) ?></p>
+                <p><strong>Work Shop:</strong> <?= ($reparation->getNameWorkshop()) ?></p>
+                <p><strong>Date:</strong> <?= ($reparation->getRegisterDate()) ?></p>
+                <p><strong>License Plate:</strong> <?= ($reparation->getLicensePlate()) ?></p>
+                <p><strong>Photo:</strong> <?= ($reparation->getPhoto()) ?></p>
+
+            <?php endif; 
+        }
+    }
+?>

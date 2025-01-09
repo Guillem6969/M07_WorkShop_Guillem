@@ -5,46 +5,122 @@ class Reparation
     private $nameWorkshop;
     private $registerDate;
     private $licensePlate;
-    function __construct($idReparation,$nameWorkshop,$registerDate,$licensePlate) {
+    private $idWorkshop;
+    private $photo;
+
+    function __construct($idReparation,$idWorkshop,$nameWorkshop,$registerDate,$licensePlate,$photo) {
         $this->idReparation = $idReparation;
+        $this->idWorkshop = $idWorkshop;
         $this->nameWorkshop = $nameWorkshop;
         $this->registerDate = $registerDate;
         $this->licensePlate = $licensePlate;
+        $this->photo = $photo;
     }
+    /**
+     * Get the value of idReparation
+     */
     public function getIdReparation()
     {
         return $this->idReparation;
     }
 
-    public function setIdReparation(
-        $idReparation
-    ): void {$this->idReparation = $idReparation;}
+    /**
+     * Set the value of idReparation
+     */
+    public function setIdReparation($idReparation): self
+    {
+        $this->idReparation = $idReparation;
 
-    public function getnameWorkshop()
+        return $this;
+    }
+
+    /**
+     * Get the value of nameWorkshop
+     */
+    public function getNameWorkshop()
     {
         return $this->nameWorkshop;
     }
-    public function setnameWorkshop(
-        $idWorkshop
-    ): void {
-        $this->nameWorkshop = $idWorkshop;
+
+    /**
+     * Set the value of nameWorkshop
+     */
+    public function setNameWorkshop($nameWorkshop): self
+    {
+        $this->nameWorkshop = $nameWorkshop;
+
+        return $this;
     }
+
+    /**
+     * Get the value of registerDate
+     */
     public function getRegisterDate()
     {
         return $this->registerDate;
     }
-    public function setRegisterDate(
-        $registerDate
-    ): void {
+
+    /**
+     * Set the value of registerDate
+     */
+    public function setRegisterDate($registerDate): self
+    {
         $this->registerDate = $registerDate;
+
+        return $this;
     }
+
+    /**
+     * Get the value of licensePlate
+     */
     public function getLicensePlate()
     {
         return $this->licensePlate;
     }
-    public function setLicensePlate(
-        $licensePlate
-    ): void {
+
+    /**
+     * Set the value of licensePlate
+     */
+    public function setLicensePlate($licensePlate): self
+    {
         $this->licensePlate = $licensePlate;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of idWorkshop
+     */
+    public function getIdWorkshop()
+    {
+        return $this->idWorkshop;
+    }
+
+    /**
+     * Set the value of idWorkshop
+     */
+    public function setIdWorkshop($idWorkshop): self
+    {
+        $this->idWorkshop = $idWorkshop;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of photo
+     */
+    public function getPhoto()
+    {
+        return $this->photo;
+    }
+
+    /**
+     * Set the value of photo
+     */
+    public function setPhoto($photo): self
+    {
+        $this->photo = $photo;
+
+        return $this;
     }
 }
