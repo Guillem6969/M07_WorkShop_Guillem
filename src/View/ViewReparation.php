@@ -39,7 +39,7 @@ if (isset($_GET['role'])) {
     <?php
     if($_SESSION['role'] === 'employee') { ?>
 
-    <form method="post" action="../Controller/ControllerReparation.php">
+    <form method="post" action="../Controller/ControllerReparation.php" enctype="multipart/form-data">
 
         <label for="idWorkshop">Workshop ID:</label>
         <input type="text" id="idWorkshop" name="idWorkshop" required>
@@ -71,12 +71,26 @@ if (isset($_GET['role'])) {
             if ($reparation != null): ?>
                 
                 <h3>Reparation Details</h3>
+                <div style=" 
+                max-width: 400px;
+                margin: 20px auto;
+                padding: 20px;
+                background-color: #fff;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);"
+                >
                 <p><strong>ID Reparation:</strong> <?= ($reparation->getIdReparation()) ?></p>
                 <p><strong>ID Workshop:</strong> <?= ($reparation->getIdWorkshop()) ?></p>
                 <p><strong>Work Shop:</strong> <?= ($reparation->getNameWorkshop()) ?></p>
                 <p><strong>Date:</strong> <?= ($reparation->getRegisterDate()) ?></p>
                 <p><strong>License Plate:</strong> <?= ($reparation->getLicensePlate()) ?></p>
-                <p><strong>Photo:</strong> <?= ($reparation->getPhoto()) ?></p>
+                <p>
+                    <?php
+                    echo '<img src="data:image/png;base64, ' . $reparation->getPhoto() . '" alt="photo" style="width: 400px"> ';
+                    ?>
+                </p>
+                </div>
 
             <?php endif; 
         }

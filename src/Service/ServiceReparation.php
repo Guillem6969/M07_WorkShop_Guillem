@@ -14,6 +14,12 @@ use Monolog\Level;
 use Monolog\Handler\StreamHandler;
 use Ramsey\Uuid\Nonstandard\Uuid;
 
+
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Drivers\Gd\Decoders\Base64ImageDecoder;
+use Intervention\Image\Typography\FontFactory;
+
 class ServiceReparation {
     private $conn;
 
@@ -23,6 +29,9 @@ class ServiceReparation {
     {
         return Uuid::uuid4();
     }
+
+
+
     public function __construct() {
 
         $this->log = new Logger('log');
@@ -44,17 +53,17 @@ class ServiceReparation {
             throw new \Exception("No se pudo leer el archivo de configuración en: $configPath");
         }
         
-        $this->conn = new \mysqli($dbConfig['host'], $dbConfig['username'], $dbConfig['pwd'], $dbConfig['dbname']);
-
-        // Manage connection errors
-        if ($this->conn->connect_error) {
+        try{
+            $this->conn = new \mysqli($dbConfig['host'], $dbConfig['username'], $dbConfig['pwd'], $dbConfig['dbname']);
+            $this->log->info("Connection succesfully");
+        }catch(Exception $e){
+            echo "ERROR: ". $e->getMessage();
             $this->log->error("Connection failed");
-            throw new \Exception('Connection failed: ' . $this->conn->connect_error);
         }
-        $this->log->info("Connection succesfully");
-
-        
     }
+
+
+
 
     public function getReparation($role, $idReparation) {
 
@@ -76,21 +85,44 @@ class ServiceReparation {
             $this->log->error("GET failed");
             throw new \Exception('Error executing query: ' . $stmt->error);
         }
+
+        //Adding in the log the succesfully get of the reparation
         $this->log->info("Get succesfully".$idReparation);
 
     
         $result = $stmt->get_result();
+
         if ($result->num_rows === 0) {
+            $this->log->error("Get FAILED".$idReparation);
             throw new \Exception('Reparation not found.');
         }
     
         $data = $result->fetch_assoc();
-        $reparation = new Reparation($data['id_reparation'],$data['idWorkshop'],$data['nameWorkshop'],$data['registerDate'],$data['licensePlate'], $data['photo'],);
+
+        $photo = $data['photo'];
+
+        if ($role == 'client') {
+                $photo = $this->addPixelate($photo);
+        }
+
+        $reparation = new Reparation(
+            $data['id_reparation'],
+            $data['idWorkshop'],
+            $data['nameWorkshop'],
+            $data['registerDate'],
+            $data['licensePlate'], 
+            $photo,
+        
+        );
         $stmt->close();
         return $reparation;
     }
 
-    public function insertReparation ($idWorkshop, $workshopName, $date, $licensePlate, $photo){
+
+
+
+    public function insertReparation ($idWorkshop, $workshopName, $date, $licensePlate, $photo)
+    {
         $sql = "INSERT INTO `workshop`.`reparation` (
             `id_reparation`, 
             `idWorkshop`,
@@ -100,29 +132,64 @@ class ServiceReparation {
             `photo`
         ) VALUES (?, ?, ?, ?, ?, ?)";
 
+       
+        
+        try{
 
-    $stmt = $this->conn->prepare($sql);
-    
-    // Verificar si la preparación de la consulta fue exitosa
-    if (!$stmt) {
-        throw new \Exception('Error preparing query: ' . $this->conn->error);
-    }
+            $stmt = $this->conn->prepare($sql);
 
-    $idReparation = $this->generateUUID();
-    // Enlazar parámetros (tipos: i = entero, s = string)
-    $stmt->bind_param("sissss", $idReparation,$idWorkshop,  $workshopName, $date, $licensePlate, $photo);
+            // Verificar si la preparación de la consulta fue exitosa
+            if (!$stmt) {
+                throw new \Exception('Error preparing query: ' . $this->conn->error);
+            }
 
-    if (!$stmt->execute()) {
-        $this->log->error("Insert failed".$idReparation);
-        throw new \Exception('Error executing query: ' . $stmt->error);
-    }
-    $this->log->info("Insert succesfully".$idReparation);
+            $idReparation = $this->generateUUID();
+            $photo = $this->addWatermark($photo, $licensePlate, $idReparation);
 
-    $stmt->close();
-    }
+            // Enlazar parámetros (tipos: i = entero, s = string)
+            $stmt->bind_param("sissss", $idReparation,$idWorkshop,  $workshopName, $date, $licensePlate, $photo);
+
+            $stmt->execute();
+            $this->log->info("Insert succesfully".$idReparation);
+        }catch(Exception $e){
+            echo "ERROR: ". $e->getMessage();
+            $this->log->error("Insert failed");
+        }
+
+        $stmt->close();
+
+        }
     
     public function __destruct() {
         $this->conn->close(); // Cerrar la conexión al destruir la instancia
     }
 
+
+
+    //Function to pixelate the photo for the client
+    function addPixelate($photo): string
+    {
+        $manager = new ImageManager(new Driver);
+        $image = $manager->read($photo, Base64ImageDecoder::class);
+
+        $image->pixelate(48);
+
+        return base64_encode($image->encode()); 
+    }
+
+
+    //Function to add a watermark to the photo for the employee
+    function addWatermark($photo, $licensePlate, $idReparation): string
+    {
+        $manager = new ImageManager(new Driver);
+        $image = $manager->read($photo, Base64ImageDecoder::class);
+
+        $image->text($licensePlate . ' - ' . $idReparation, 20, 50, function (FontFactory $font) {
+            $font->size(54);
+            $font->color('#000000');
+            $font->stroke('#FFFFFF', 9);
+        });
+
+        return base64_encode($image->encode());
+    }
 }
