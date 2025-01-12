@@ -66,64 +66,72 @@ class ServiceReparation {
 
 
     public function getReparation($role, $idReparation) {
-
         $sql = "SELECT id_reparation, idWorkshop, nameWorkshop, registerDate, licensePlate, photo
                 FROM reparation 
                 WHERE id_reparation = ?";
-
-        $stmt = $this->conn->prepare($sql);
     
-        // Verificar si la preparación de la consulta fue exitosa
-        if (!$stmt) {
-            throw new \Exception('Error preparing query: ' . $this->conn->error);
-        }
-
-        // Vincular el parámetro 'idReparation' (tipo 'i' para entero)
-        $stmt->bind_param("i", $idReparation);
+        try {
+            $stmt = $this->conn->prepare($sql);
     
-        if (!$stmt->execute()) {
-            $this->log->error("GET failed");
-            throw new \Exception('Error executing query: ' . $stmt->error);
-        }
-
-        //Adding in the log the succesfully get of the reparation
-        $this->log->info("Get succesfully".$idReparation);
-
+            // Verificar si la preparación de la consulta fue exitosa
+            if (!$stmt) {
+                throw new \Exception('Error preparing query: ' . $this->conn->error);
+            }
     
-        $result = $stmt->get_result();
-
-        if ($result->num_rows === 0) {
-            $this->log->error("Get FAILED".$idReparation);
-            throw new \Exception('Reparation not found.');
-        }
+            // Vincular el parámetro 'idReparation' (tipo 'i' para entero)
+            $stmt->bind_param("i", $idReparation);
     
-        $data = $result->fetch_assoc();
-
-        $photo = $data['photo'];
-
-        if ($role == 'client') {
+            if (!$stmt->execute()) {
+                $this->log->error("GET failed");
+                throw new \Exception('Error executing query: ' . $stmt->error);
+            }
+    
+            // Obtener el resultado de la consulta
+            $result = $stmt->get_result();
+            $data = $result->fetch_assoc();
+    
+            // Verificar si se encontró el registro
+            if (!$data) {
+                $this->log->error("No reparation found with ID: " . $idReparation);
+                throw new \Exception('Reparation not found with ID: ' . $idReparation);
+            }
+    
+            // Agregar al log el éxito en la obtención de la reparación
+            $this->log->info("Get successfully: " . $idReparation);
+    
+            $photo = $data['photo'];
+    
+            // Modificar la foto si el rol es 'client'
+            if ($role == 'client') {
                 $photo = $this->addPixelate($photo);
+            }
+    
+            // Crear el objeto Reparation
+            $reparation = new Reparation(
+                $data['id_reparation'],
+                $data['idWorkshop'],
+                $data['nameWorkshop'],
+                $data['registerDate'],
+                $data['licensePlate'], 
+                $photo
+            );
+    
+            $stmt->close();
+            return $reparation;
+    
+        } catch (Exception $e) {
+            $this->log->error("Get FAILED for ID: " . $idReparation . ". Error: " . $e->getMessage());
+            throw new \Exception('Error retrieving reparation: ' . $e->getMessage());
         }
-
-        $reparation = new Reparation(
-            $data['id_reparation'],
-            $data['idWorkshop'],
-            $data['nameWorkshop'],
-            $data['registerDate'],
-            $data['licensePlate'], 
-            $photo,
-        
-        );
-        $stmt->close();
-        return $reparation;
     }
+    
 
 
 
 
     public function insertReparation ($idWorkshop, $workshopName, $date, $licensePlate, $photo)
     {
-        $sql = "INSERT INTO `workshop`.`reparation` (
+        $sql = "INSERT INTO `workshop`.`reparation ` (
             `id_reparation`, 
             `idWorkshop`,
             `nameWorkshop`, 
